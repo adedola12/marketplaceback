@@ -1,18 +1,4 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "dev": "nodemon api/index.js",
-    "start": "node api/index.js",
-    
-    "heroku-postbuild": " npm install && npm run build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
@@ -22,5 +8,18 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.0",
     "nodemon": "^3.1.0"
-  }
+  },
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+     "heroku-postbuild": " npm install && npm run build"
+  },
+  "name": "mernsite",
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

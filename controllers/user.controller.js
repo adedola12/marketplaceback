@@ -3,6 +3,7 @@ import errorHandler from "../utils/error.js";
 import User from "../models/user.model.js";
 import Listing from "../models/listing.model.js";
 import Product from "../models/product.model.js";
+import { isValidObjectId } from "mongoose";
 
 export const test = (req, res) => {
   res.json({
@@ -106,6 +107,16 @@ export const getSellerProductAndReviews = async (req, res, next) => {
 
 export const getUser = async (req, res, next) => {
   try {
+
+
+    if(!req.params.id) {
+      return next(errorHandler(404, "Invalid user ID!"));
+    }
+    
+    if(!isValidObjectId(req.params.id)) {
+      return next(errorHandler(404, "Invalid user ID!"));
+    }
+
     const user = await User.findById(req.params.id);
 
     if (!user) {
