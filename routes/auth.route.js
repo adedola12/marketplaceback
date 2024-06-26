@@ -6,7 +6,7 @@ import {
   signup,
   refresh,
 } from "../controllers/auth.controller.js";
-import { verifyRefreshToken } from "../utils/verifyUser.js";
+import { verifyRefreshToken, verifyToken } from "../utils/verifyUser.js";
 
 const router = express.Router();
 

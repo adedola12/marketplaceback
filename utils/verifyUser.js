@@ -5,36 +5,25 @@ import User from "../models/user.model.js";
 
 export const verifyToken = async (req, res, next) => {
   
-  const access_token = req.cookies.access_token;
+  const access_token = req.cookies["access_token"];
+  console.log({REQ: req.cookies})
 
+ 
   if (!access_token) {
     return next(errorHandler(401, "Unauthorized Request"));
   }
 
-  // jwt.verify(access_token, process.env.JWT_SECRET, (err, user) => {
-  //   if (err) {
-  //     if(err instanceof jwt.TokenExpiredError) {
-  //       return next(errorHandler(401, " jwt expired"));
-  //     } else if(err instanceof jwt.JsonWebTokenError) {
-  //       return next(errorHandler(401, "jwt expired"));
-  //     }
-  //     return next(errorHandler(404, "Forbidden Request"));
-  //   }
-
-  //   req.user = user;
-  //   next();
-  // });
 
   try {
 
-    const decoded = jwt.verify(access_token, appConstants.JWT_SECRET);
+    const decoded =  jwt.verify(access_token, appConstants.JWT_SECRET);
 
     if(!decoded) {
       return next(errorHandler(401, "Unauthorized token"));
     }
 
     const user = await User.findById(decoded?.id);
-
+   
     if(!user) {
       return next(errorHandler(401, "Unauthorized user"));
     }

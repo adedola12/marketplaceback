@@ -53,14 +53,21 @@ export const signin = async (req, res, next) => {
     const sessionExp = new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT);
     const { password: pass, ...rest } = validUser._doc;
     
+
     
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
+      path: "/",
+      secure: false,
+      sameSite: "none",
       expires: new Date(Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT),
     })
 
     res.cookie("access_token", access_token, {
       httpOnly: true,
+      path: "/",
+      secure: false,
+      sameSite: "none",
       expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
     })
     .status(200)
@@ -83,6 +90,9 @@ export const google = async (req, res, next) => {
 
     const user = await User.findOne({ email });
 
+    req.cookies.access_token = '';
+    req.cookies.refresh_token = '';
+
     if (user) {
 
       const access_token = jwt.sign({ id: user._id }, appConstants.JWT_ACCESS_TOKEN_SECRET);
@@ -91,25 +101,29 @@ export const google = async (req, res, next) => {
       const { password: pass, ...rest } = user._doc;
 
       const sessionExp = new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT);
-      
+
       res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
+        path: "/",
+        secure: false,
+        sameSite: "none",  
         expires: new Date(Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT),
       })
 
       res.cookie("access_token", access_token, {
-        httpOnly: true,
+        path: "/",
+        httpOnly: false,
+        secure: false,
+        sameSite: "lax",  
         expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
       })
-      .status(200)
-      .json({...rest, sessionExp });
+      
 
-
+      return res.status(200).json({...rest, sessionExp });
 
     } else {
 
       const generatedPassword = Math.random().toString(36).slice(-8);
-      // const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
 
       const newUser = new User({
           username: req.body.name.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4),
@@ -126,19 +140,26 @@ export const google = async (req, res, next) => {
       const { password: pass, ...rest } = savedUser._doc;
 
       const sessionExp = new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT);
-
+      
+      
       res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
+        path: "/",
+        secure: false,
+        sameSite: "none",  
         expires: new Date(Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT),
       })
 
       res.cookie("access_token", access_token, {
-        httpOnly: true,
+        path: "/",
+        httpOnly: false,
+        secure: false,
+        sameSite: "lax",  
         expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
       })
-      .status(200)
-      .json({...rest, sessionExp});
+      
 
+      return res.status(200).json({...rest, sessionExp });
     }
   } catch (error) {
     next(error);
@@ -146,9 +167,19 @@ export const google = async (req, res, next) => {
 };
 
 export const signOut = async (req, res, next) => {
+  const { access_token, refresh_token } = req.cookies
+
   try {
-    res.clearCookie("access_token");
-    res.clearCookie("refresh_token");
+
+    if(access_token) {
+      res.clearCookie("access_token", "", {expires: new Date(0)});
+    }
+
+    if(refresh_token) {
+      res.clearCookie("refresh_token", "", {expires: new Date(0)});
+    }
+    res.clearCookie("access_token", "", {expires: new Date(0)});
+
     res.status(200).json("User has been logged out!!");
   } catch (error) {
     next(error);
@@ -163,6 +194,9 @@ export const refresh = async (req, res, next) => {
     return next(errorHandler(401, "Unauthorized user"));
   }
 
+  req.cookies.access_token = '';
+  req.cookies.refresh_token = '';
+
   try {
 
     const access_token = jwt.sign({ id: user._id }, appConstants.JWT_ACCESS_TOKEN_SECRET);
@@ -172,15 +206,21 @@ export const refresh = async (req, res, next) => {
 
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
+      path: "/",
+      secure: false,
+      sameSite: "none",  
       expires: new Date(Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT),
     })
 
     res.cookie("access_token", access_token, {
-      httpOnly: true,
+      path: "/",
+      httpOnly: false,
+      secure: false,
+      sameSite: "lax",  
       expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
     })
-    .status(200)
-    .json({...user, sessionExp});
+
+   return res.status(200).json({...user, sessionExp});
 
   } catch (error) {
     next(error);

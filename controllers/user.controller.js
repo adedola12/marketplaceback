@@ -106,8 +106,9 @@ export const getSellerProductAndReviews = async (req, res, next) => {
 };
 
 export const getUser = async (req, res, next) => {
-  try {
 
+  
+  try {
 
     if(!req.params.id) {
       return next(errorHandler(404, "Invalid user ID!"));
