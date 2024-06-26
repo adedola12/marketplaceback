@@ -8,15 +8,58 @@ import reviewRouter from "./routes/review.route.js";
 import cors from "cors";
 import connectDb from "./utils/database.js";
 import appConstants from "./constants/index.js";
-import cors from "cors";
 
 const app = express();
 
-app.use(cors())
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:3000",
+  "https://adlmmarketplace-git-main-adedola12s-projects.vercel.app",
+];
+
+// const corsOptions = {
+//   origin: (origin, callback) => {
+
+//     if (allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true,
+// };
+
+const corsOptions = {
+  origin: allowedOrigins,
+  credentials: true,
+};
+
+app.use(
+  cors({
+    origin: [
+      "http://127.0.0.1:5173",
+      "http://127.0.0.1:3000",
+      "https://mernsite-k2ky.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Origin",
+      "X-Requested-With",
+      "Accept",
+      "x-client-key",
+      "x-client-token",
+      "x-client-secret",
+      "Authorization",
+    ],
+    credentials: true,
+    optionSuccessStatus: 200,
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
-
-app.use(cors());
 
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
