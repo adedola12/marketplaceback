@@ -8,6 +8,7 @@ import reviewRouter from "./routes/review.route.js";
 import cors from "cors";
 import connectDb from "./utils/database.js";
 import appConstants from "./constants/index.js";
+import path from "path";
 
 const app = express();
 
@@ -40,7 +41,7 @@ app.use(
     origin: [
       "http://127.0.0.1:5173",
       "http://127.0.0.1:3000",
-      "https://adlmmarketplace.onrender.com",
+      "https://adlmmarketplace.vercel.app",
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"],
     allowedHeaders: [
@@ -77,6 +78,10 @@ app.use((err, req, res, next) => {
     message,
   });
 });
+
+// app.get("*", (req, res) => {
+//   res.sendFile(path.join(__dirname, "./../client/dist/index.html"));
+// });
 
 // START APPLICATION
 connectDb()
