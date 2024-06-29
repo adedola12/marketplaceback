@@ -2,10 +2,9 @@ import Product from "../models/product.model.js";
 import errorHandler from "../utils/error.js";
 
 import { productCategories } from "../constants/data.js";
-
+import User from "../models/user.model.js";
 
 export const createProduct = async (req, res, next) => {
-
   const {
     name,
     description,
@@ -26,42 +25,38 @@ export const createProduct = async (req, res, next) => {
   const { categoryName, subCategories } = categoryData;
 
   try {
-    
     const subCat = subCategories.map((name) => name);
 
-      const newProduct = new Product({
-        name,
-        description,
-        location,
-        storeAddress,
-        type,
-        regularPrice,
-        discountPrice,
-        discount,
-        imageUrls,
-        mobile,
-        unit,
-        userRef,
-        category: categoryName,
-        subCategories: [...subCat],
-      });
+    const newProduct = new Product({
+      name,
+      description,
+      location,
+      storeAddress,
+      type,
+      regularPrice,
+      discountPrice,
+      discount,
+      imageUrls,
+      mobile,
+      unit,
+      userRef,
+      category: categoryName,
+      subCategories: [...subCat],
+    });
 
-      const product = await newProduct.save();
+    const product = await newProduct.save();
 
     return res.status(201).json(product);
-
   } catch (error) {
     next(error);
   }
 };
 
-
 export const getCategories = async (req, res, next) => {
   try {
-
     const categories = await Product.aggregate([
       {
-        $unwind: "$subCategories"
+        $unwind: "$subCategories",
       },
       {
         $group: {
@@ -69,8 +64,8 @@ export const getCategories = async (req, res, next) => {
           name: { $first: "$name" },
           category: { $first: "$category" },
           subCategories: { $addToSet: "$subCategories" },
-          id: { $first: "$_id" }
-        }
+          id: { $first: "$_id" },
+        },
       },
       {
         $project: {
@@ -78,22 +73,19 @@ export const getCategories = async (req, res, next) => {
           name: 1,
           category: 1,
           subCategories: 1,
-          id: 1
-        }
-      }
+          id: 1,
+        },
+      },
     ]);
 
     return res.status(200).json(categories);
-
   } catch (error) {
     next(error);
   }
 };
 
 export const getAllProductInCategory = async (req, res, next) => {
-  
   try {
-
     const category = req.query.categories;
 
     const limit = parseInt(req.query.limit) || 9;
@@ -101,7 +93,6 @@ export const getAllProductInCategory = async (req, res, next) => {
 
     const sort = req.query.sort || "createdAt";
     const order = req.query.order || "desc";
-
 
     const productsArray = await Product.aggregate([{ $sample: { size: 8 } }]);
 
@@ -122,15 +113,16 @@ export const getAllProductInCategory = async (req, res, next) => {
 
 export const getAllProductInSubCategory = async (req, res, next) => {
   const { categoryName } = req.params;
-  
-  try {
 
+  try {
     const products = await Product.find({ category: categoryName });
-    
+
     let subCategories = [];
-    if(products && products.length > 0) {
-      subCategories = products.filter(product => 
-        productCategories.some(subCategory => product.categories === subCategory.name)
+    if (products && products.length > 0) {
+      subCategories = products.filter((product) =>
+        productCategories.some(
+          (subCategory) => product.categories === subCategory.name
+        )
       );
     }
 
@@ -139,15 +131,19 @@ export const getAllProductInSubCategory = async (req, res, next) => {
       subCategories,
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(error);
   }
 };
 
 export const getAllUserProduct = async (req, res, next) => {
   try {
-    const products = await Product.find({ userRef: req.params.userId });
-    res.json({ success: true, products });
+    const productPromise = Product.find({ userRef: req.params.userId });
+    const userPromise = User.findById(req.params.userId).select("-password");
+
+    const [products, user] = await Promise.all([productPromise, userPromise]);
+
+    res.json({ success: true, products, user });
   } catch (error) {
     next(error);
   }
@@ -155,45 +151,48 @@ export const getAllUserProduct = async (req, res, next) => {
 
 export const getCat = async (req, res, next) => {
   try {
-
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const skip = (page - 1) * limit;
 
-
-    const { location, category, subCategory, type, sort = "createdAt", order = "desc" } = req.query;
+    const {
+      location,
+      category,
+      subCategory,
+      type,
+      sort = "createdAt",
+      order = "desc",
+    } = req.query;
 
     const andConditions = [];
     const orConditions = [];
 
-    if(location) {
-      orConditions.push({ location: new RegExp(location, 'i') });
+    if (location) {
+      orConditions.push({ location: new RegExp(location, "i") });
     }
 
-    if(category) {
-      orConditions.push({category: new RegExp(category, 'i')});
+    if (category) {
+      orConditions.push({ category: new RegExp(category, "i") });
     }
 
-    if(subCategory) {
-      orConditions.push({subCategories: new RegExp(subCategory, 'i')});
+    if (subCategory) {
+      orConditions.push({ subCategories: new RegExp(subCategory, "i") });
     }
 
-    if(type) {
-      orConditions.push({ type: new RegExp(type, 'i') });
+    if (type) {
+      orConditions.push({ type: new RegExp(type, "i") });
     }
 
     if (orConditions.length > 0) {
-        andConditions.push({ $or: orConditions });
+      andConditions.push({ $or: orConditions });
     }
 
     const filter = andConditions.length > 0 ? { $and: andConditions } : {};
 
     const products = await Product.find(filter)
-      .sort({[sort]: order })
+      .sort({ [sort]: order })
       .limit(limit)
       .skip(skip);
-
-  
 
     const totalDoc = await Product.countDocuments(filter);
 
@@ -204,52 +203,53 @@ export const getCat = async (req, res, next) => {
         limit,
         page,
         pages: Math.ceil(totalDoc / limit),
-      }
+      },
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(error);
   }
 };
 
 export const searchProduct = async (req, res, next) => {
-
-
   try {
-   
-    const { location, category, subCategory, type, limit = 12, startIndex = 0 } = req.query;
+    const {
+      location,
+      category,
+      subCategory,
+      type,
+      limit = 12,
+      startIndex = 0,
+    } = req.query;
 
-    const distinctCategories = await Product.distinct('category');
+    const distinctCategories = await Product.distinct("category");
 
     const andConditions = [];
     const orConditions = [];
 
-    if(location) {
-      orConditions.push({ location: new RegExp(location, 'i') });
+    if (location) {
+      orConditions.push({ location: new RegExp(location, "i") });
     }
 
-    if(category) {
-      orConditions.push({category: new RegExp(category, 'i')});
+    if (category) {
+      orConditions.push({ category: new RegExp(category, "i") });
     }
 
-    if(subCategory) {
-      orConditions.push({subCategories: new RegExp(subCategory, 'i')});
+    if (subCategory) {
+      orConditions.push({ subCategories: new RegExp(subCategory, "i") });
     }
 
-    if(type) {
-      orConditions.push({ type: new RegExp(type, 'i') });
+    if (type) {
+      orConditions.push({ type: new RegExp(type, "i") });
     }
 
     if (orConditions.length > 0) {
-        andConditions.push({ $or: orConditions });
+      andConditions.push({ $or: orConditions });
     }
 
     const filter = andConditions.length > 0 ? { $and: andConditions } : {};
 
-    const products = await Product.find(filter)
-          .limit(limit)
-          .skip(startIndex);
-  
+    const products = await Product.find(filter).limit(limit).skip(startIndex);
 
     res.status(200).json({
       success: true,
@@ -259,7 +259,7 @@ export const searchProduct = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     next(error);
   }
 };

@@ -31,6 +31,13 @@ export const signup = async (req, res, next) => {
 export const signin = async (req, res, next) => {
   const { email, password } = req.body;
 
+  if (
+    !appConstants.JWT_ACCESS_TOKEN_SECRET ||
+    !appConstants.JWT_REFRESH_TOKEN_SECRET
+  ) {
+    return res.status(400).json({ message: "Kindly provide env variables" });
+  }
+
   try {
     const validUser = await User.findOne({ email });
 
@@ -60,25 +67,22 @@ export const signin = async (req, res, next) => {
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
       path: "/",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "none",
       expires: new Date(
         Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
       ),
     });
 
-    res
-      .cookie("access_token", access_token, {
-        httpOnly: true,
-        path: "/",
-        secure: false,
-        sameSite: "none",
-        expires: new Date(
-          Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT
-        ),
-      })
-      .status(200)
-      .json({ ...rest, sessionExp });
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
+    });
+
+    return res.status(200).json({ ...rest, sessionExp });
   } catch (error) {
     next(error);
   }
@@ -87,6 +91,13 @@ export const signin = async (req, res, next) => {
 export const google = async (req, res, next) => {
   const { email } = req.body;
 
+  if (
+    !appConstants.JWT_ACCESS_TOKEN_SECRET ||
+    !appConstants.JWT_REFRESH_TOKEN_SECRET
+  ) {
+    return res.status(400).json({ message: "Kindly provide env variables" });
+  }
+
   if (!email.trim()) {
     return res.status(400).json({ message: "Email is required" });
   }
@@ -94,8 +105,8 @@ export const google = async (req, res, next) => {
   try {
     const user = await User.findOne({ email });
 
-    req.cookies.access_token = "";
-    req.cookies.refresh_token = "";
+    req.cookies["access_token"] = "";
+    req.cookies["refresh_token"] = "";
 
     if (user) {
       const access_token = jwt.sign(
@@ -116,7 +127,7 @@ export const google = async (req, res, next) => {
       res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         path: "/",
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "none",
         expires: new Date(
           Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
@@ -125,8 +136,8 @@ export const google = async (req, res, next) => {
 
       res.cookie("access_token", access_token, {
         path: "/",
-        httpOnly: false,
-        secure: false,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         expires: new Date(
           Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT
@@ -166,7 +177,7 @@ export const google = async (req, res, next) => {
       res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         path: "/",
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "none",
         expires: new Date(
           Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
@@ -175,8 +186,8 @@ export const google = async (req, res, next) => {
 
       res.cookie("access_token", access_token, {
         path: "/",
-        httpOnly: false,
-        secure: false,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         expires: new Date(
           Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT
@@ -186,7 +197,6 @@ export const google = async (req, res, next) => {
       return res.status(200).json({ ...rest, sessionExp });
     }
   } catch (error) {
-    console.error("Error during Google authentication:", error);
     next(error);
   }
 };
@@ -202,23 +212,31 @@ export const signOut = async (req, res, next) => {
     if (refresh_token) {
       res.clearCookie("refresh_token", "", { expires: new Date(0) });
     }
+
     res.clearCookie("access_token", "", { expires: new Date(0) });
 
-    res.status(200).json("User has been logged out!!");
+    res.status(200).json(null);
   } catch (error) {
     next(error);
   }
 };
 
 export const refresh = async (req, res, next) => {
+  if (
+    !appConstants.JWT_ACCESS_TOKEN_SECRET ||
+    !appConstants.JWT_REFRESH_TOKEN_SECRET
+  ) {
+    return res.status(400).json({ message: "Kindly provide env variables" });
+  }
+
   const user = req.user;
 
   if (!user && !user?._id) {
     return next(errorHandler(401, "Unauthorized user"));
   }
 
-  req.cookies.access_token = "";
-  req.cookies.refresh_token = "";
+  req.cookies["access_token"] = "";
+  req.cookies["refresh_token"] = "";
 
   try {
     const access_token = jwt.sign(
@@ -236,7 +254,7 @@ export const refresh = async (req, res, next) => {
     res.cookie("refresh_token", refresh_token, {
       httpOnly: true,
       path: "/",
-      secure: false,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "none",
       expires: new Date(
         Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
@@ -245,8 +263,8 @@ export const refresh = async (req, res, next) => {
 
     res.cookie("access_token", access_token, {
       path: "/",
-      httpOnly: false,
-      secure: false,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
     });

@@ -6,9 +6,7 @@ import User from "../models/user.model.js";
 export const verifyToken = async (req, res, next) => {
   
   const access_token = req.cookies["access_token"];
-  console.log({REQ: req.cookies})
 
- 
   if (!access_token) {
     return next(errorHandler(401, "Unauthorized Request"));
   }
@@ -34,7 +32,7 @@ export const verifyToken = async (req, res, next) => {
 
   } catch (error) {
     if(error instanceof jwt.TokenExpiredError) {
-      return next(errorHandler(401, " jwt expired"));
+      return next(errorHandler(401, "jwt expired"));
     } else if(error instanceof jwt.JsonWebTokenError) {
       return next(errorHandler(401, "jwt expired"));
     }
@@ -45,7 +43,7 @@ export const verifyToken = async (req, res, next) => {
 
 export const verifyRefreshToken = async (req, res, next) => {
 
-  const refresh_token = req.cookies.refresh_token;
+  const refresh_token = req.cookies["refresh_token"];
 
   if(!refresh_token) {
     return next(errorHandler(401, "Unauthorized Request"));
@@ -72,7 +70,7 @@ export const verifyRefreshToken = async (req, res, next) => {
 
   } catch (error) {
       if(error instanceof jwt.TokenExpiredError) {
-        return next(errorHandler(401, " jwt expired"));
+        return next(errorHandler(401, "jwt expired"));
       } else if(error instanceof jwt.JsonWebTokenError) {
         return next(errorHandler(401, "jwt expired"));
       }
