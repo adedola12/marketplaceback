@@ -11,18 +11,16 @@ export const createProduct = async (req, res, next) => {
     location,
     storeAddress,
     type,
-    categories,
     regularPrice,
     discountPrice,
     discount,
     imageUrls,
     mobile,
     unit,
-    categoryData,
+    categoryName,
+    subCategories: { subCategories },
     userRef,
   } = req.body;
-
-  const { categoryName, subCategories } = categoryData;
 
   try {
     const subCat = subCategories.map((name) => name);
@@ -45,7 +43,6 @@ export const createProduct = async (req, res, next) => {
     });
 
     const product = await newProduct.save();
-
     return res.status(201).json(product);
   } catch (error) {
     next(error);

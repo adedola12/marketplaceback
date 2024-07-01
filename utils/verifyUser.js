@@ -11,6 +11,7 @@ export const verifyToken = async (req, res, next) => {
   if (!access_token) {
     return next(errorHandler(401, "Unauthorized Request"));
   }
+
   try {
     const decoded = jwt.verify(access_token, appConstants.JWT_SECRET);
 
