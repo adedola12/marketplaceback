@@ -324,6 +324,26 @@ export const editProduct = async (req, res, next) => {
   }
 };
 
+// export const updateProduct = async (req, res, next) => {
+
+//   const product = await Product.findById(req.params.id);
+
+//   if (!product) {
+//     return next(errorHandler(404, "Product not found"));
+//   }
+
+//   if (req.user._id.toString() !== product.userRef.toString()) {
+//     return next(errorHandler(400, "You can only edit your own product!"));
+
+//   }
+
+//   try {
+//     res.status(200).json(product);
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
 export const updateProduct = async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 

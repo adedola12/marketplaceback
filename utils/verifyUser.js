@@ -14,8 +14,9 @@ export const verifyToken = async (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(access_token, appConstants.JWT_SECRET);
 
+    const decoded = jwt.verify(access_token, appConstants.JWT_SECRET);
+   
     if (!decoded) {
       return next(errorHandler(401, "Unauthorized token"));
     }
@@ -31,6 +32,7 @@ export const verifyToken = async (req, res, next) => {
     req.user = rest;
 
     next();
+    
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       return next(errorHandler(401, "jwt expired"));

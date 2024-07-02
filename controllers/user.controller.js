@@ -50,6 +50,7 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
+
   if (!req.user._id.toString()) {
     return next(errorHandler(401, "Please login"));
   }
@@ -57,6 +58,7 @@ export const deleteUser = async (req, res, next) => {
   if (req.user._id.toString() !== req.params.id) {
     return next(errorHandler(401, "You can only delete your own account"));
   }
+
 
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -70,7 +72,9 @@ export const deleteUser = async (req, res, next) => {
 };
 
 export const getUserListings = async (req, res, next) => {
-  if (req.user._id.toString() !== req.params.id) {
+
+  if(req.user._id.toString() !== req.params.id) {
+
     return next(errorHandler(401, "You can only view your own listings!"));
   }
 
@@ -80,6 +84,7 @@ export const getUserListings = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+
 };
 
 export const getSellerProductAndReviews = async (req, res, next) => {
@@ -144,7 +149,9 @@ export const productUserDetails = async (req, res, next) => {
 };
 
 export const getUserProduct = async (req, res, next) => {
-  if (req.user._id.toString() !== req.params.id) {
+
+  if(req.user._id.toString() !== req.params.id) {
+
     return next(errorHandler(401, "You can only view your own product!"));
   }
 
@@ -154,4 +161,5 @@ export const getUserProduct = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+
 };

@@ -11,7 +11,9 @@ import {
   getCategories,
   getProduct,
   searchProduct,
-  updateProduct,
+
+  updateProduct
+
 } from "../controllers/product.controller.js";
 
 const router = express.Router();
