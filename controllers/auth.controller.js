@@ -68,7 +68,7 @@ export const signin = async (req, res, next) => {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: "lax",
       expires: new Date(
         Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
       ),
@@ -78,7 +78,7 @@ export const signin = async (req, res, next) => {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: "lax",
       expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
     });
 
@@ -111,11 +111,13 @@ export const google = async (req, res, next) => {
     if (user) {
       const access_token = jwt.sign(
         { id: user._id },
-        appConstants.JWT_ACCESS_TOKEN_SECRET
+        appConstants.JWT_ACCESS_TOKEN_SECRET,
+        { expiresIn: appConstants.JWT_ACCESS_TOKEN_TIMEOUT }
       );
       const refresh_token = jwt.sign(
         { id: user._id },
-        appConstants.JWT_REFRESH_TOKEN_SECRET
+        appConstants.JWT_REFRESH_TOKEN_SECRET,
+        { expiresIn: appConstants.JWT_REFRESH_TOKEN_TIMEOUT }
       );
 
       const { password: pass, ...rest } = user._doc;
@@ -127,8 +129,8 @@ export const google = async (req, res, next) => {
       res.cookie("refresh_token", refresh_token, {
         httpOnly: true,
         path: "/",
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        secure: true,
+        sameSite: "lax",
         expires: new Date(
           Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
         ),
@@ -137,7 +139,7 @@ export const google = async (req, res, next) => {
       res.cookie("access_token", access_token, {
         path: "/",
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         sameSite: "lax",
         expires: new Date(
           Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT
@@ -161,11 +163,13 @@ export const google = async (req, res, next) => {
 
       const access_token = jwt.sign(
         { id: savedUser._id },
-        appConstants.JWT_ACCESS_TOKEN_SECRET
+        appConstants.JWT_ACCESS_TOKEN_SECRET,
+        { expiresIn: appConstants.JWT_ACCESS_TOKEN_TIMEOUT }
       );
       const refresh_token = jwt.sign(
         { id: savedUser._id },
-        appConstants.JWT_REFRESH_TOKEN_SECRET
+        appConstants.JWT_REFRESH_TOKEN_SECRET,
+        { expiresIn: appConstants.JWT_REFRESH_TOKEN_TIMEOUT }
       );
 
       const { password: pass, ...rest } = savedUser._doc;
@@ -178,7 +182,7 @@ export const google = async (req, res, next) => {
         httpOnly: true,
         path: "/",
         secure: process.env.NODE_ENV === "production",
-        sameSite: "none",
+        sameSite: "lax",
         expires: new Date(
           Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
         ),
@@ -241,11 +245,13 @@ export const refresh = async (req, res, next) => {
   try {
     const access_token = jwt.sign(
       { id: user._id },
-      appConstants.JWT_ACCESS_TOKEN_SECRET
+      appConstants.JWT_ACCESS_TOKEN_SECRET,
+      { expiresIn: appConstants.JWT_ACCESS_TOKEN_TIMEOUT }
     );
     const refresh_token = jwt.sign(
       { id: user._id },
-      appConstants.JWT_REFRESH_TOKEN_SECRET
+      appConstants.JWT_REFRESH_TOKEN_SECRET,
+      { expiresIn: appConstants.JWT_REFRESH_TOKEN_TIMEOUT }
     );
     const sessionExp = new Date(
       Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT
@@ -255,7 +261,7 @@ export const refresh = async (req, res, next) => {
       httpOnly: true,
       path: "/",
       secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
+      sameSite: "lax",
       expires: new Date(
         Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
       ),

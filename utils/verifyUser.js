@@ -4,9 +4,10 @@ import appConstants from "../constants/index.js";
 import User from "../models/user.model.js";
 
 export const verifyToken = async (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const tokenFromHeader = authHeader && authHeader.split(" ")[1];
-  const access_token = req.cookies["access_token"] || tokenFromHeader;
+  // const authHeader = req.headers["authorization"];
+  // const tokenFromHeader = authHeader && authHeader.split(" ")[1];
+
+  const access_token = req.cookies["access_token"];
 
   if (!access_token) {
     return next(errorHandler(401, "Unauthorized Request"));
@@ -21,12 +22,14 @@ export const verifyToken = async (req, res, next) => {
 
     const user = await User.findById(decoded?.id);
 
-    if (!user) {
+    if (!user && !user._id) {
       return next(errorHandler(401, "Unauthorized user"));
     }
 
     const { password, ...rest } = user._doc;
+
     req.user = rest;
+
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {

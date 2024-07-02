@@ -12,17 +12,15 @@ export const test = (req, res) => {
 };
 
 export const updateUser = async (req, res, next) => {
-
   const userId = req?.user?.id;
 
-  if(!userId) {
+  if (!userId) {
     return next(errorHandler(401, "Please login"));
   }
 
   if (userId !== req.params.id)
     return next(errorHandler(401, "You can only update your own account"));
   try {
-
     // if (req.body.password) {
     //   req.body.password = bcryptjs.hashSync(req.body.password, 10);
     // }
@@ -52,45 +50,45 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const deleteUser = async (req, res, next) => {
-  
-  if (!req.user.id) {
+  if (!req.user._id.toString()) {
     return next(errorHandler(401, "Please login"));
   }
 
-  if (req.user.id !== req.params.id) {
+  if (req.user._id.toString() !== req.params.id) {
     return next(errorHandler(401, "You can only delete your own account"));
   }
 
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.clearCookie("access_token");
-    res.status(200).json("User has been deleted!");
+    res.clearCookie("access_token", "", { expires: new Date(0) });
+    res.clearCookie("refresh_token", "", { expires: new Date(0) });
+
+    res.status(200).json(null);
   } catch (error) {
     next(error);
   }
 };
 
 export const getUserListings = async (req, res, next) => {
-  if (req.user.id === req.params.id) {
-    try {
-      const listings = await Listing.find({ userRef: req.params.id });
-      res.status(200).json(listings);
-    } catch (error) {
-      next(error);
-    }
-  } else {
+  if (req.user._id.toString() !== req.params.id) {
     return next(errorHandler(401, "You can only view your own listings!"));
+  }
+
+  try {
+    const listings = await Listing.find({ userRef: req.params.id });
+    res.status(200).json(listings);
+  } catch (error) {
+    next(error);
   }
 };
 
 export const getSellerProductAndReviews = async (req, res, next) => {
   const { sellerId } = req.params;
   try {
-
     const user = await User.findById(sellerId).populate({
       path: "reviews",
       model: "Review",
-      select: "comment rating"
+      select: "comment rating",
     });
 
     if (!user) {
@@ -106,15 +104,12 @@ export const getSellerProductAndReviews = async (req, res, next) => {
 };
 
 export const getUser = async (req, res, next) => {
-
-  
   try {
-
-    if(!req.params.id) {
+    if (!req.params.id) {
       return next(errorHandler(404, "Invalid user ID!"));
     }
-    
-    if(!isValidObjectId(req.params.id)) {
+
+    if (!isValidObjectId(req.params.id)) {
       return next(errorHandler(404, "Invalid user ID!"));
     }
 
@@ -149,14 +144,14 @@ export const productUserDetails = async (req, res, next) => {
 };
 
 export const getUserProduct = async (req, res, next) => {
-  if (req.user.id === req.params.id) {
-    try {
-      const products = await Product.find({ userRef: req.params.id });
-      res.status(200).json(products);
-    } catch (error) {
-      next(error);
-    }
-  } else {
+  if (req.user._id.toString() !== req.params.id) {
     return next(errorHandler(401, "You can only view your own product!"));
+  }
+
+  try {
+    const products = await Product.find({ userRef: req.params.id });
+    res.status(200).json(products);
+  } catch (error) {
+    next(error);
   }
 };
