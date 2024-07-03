@@ -213,40 +213,47 @@ export const getCat = async (req, res, next) => {
 };
 
 export const searchProduct = async (req, res, next) => {
-  try {
-    const {
-      name,
-      location,
-      category,
-      subCategory,
-      type,
-      limit = 12,
-      startIndex = 0,
-    } = req.query;
+  const {
+    name,
+    location,
+    category,
+    subCategory,
+    type,
+    limit = 12,
+    startIndex = 0,
+  } = req.query;
 
+  try {
     const distinctCategories = await Product.distinct("category");
 
     const andConditions = [];
     const orConditions = [];
 
     if (name) {
-      orConditions.push({ name: new RegExp(name, "i") });
+      orConditions.push({ name: new RegExp(`.*${name}.*`, "i") });
+      // orConditions.push({ name: new RegExp(name, "i") });
     }
 
     if (location) {
-      orConditions.push({ location: new RegExp(location, "i") });
+      orConditions.push({ location: new RegExp(`.*${location}.*`, "i") });
+      // orConditions.push({ location: new RegExp(location, "i") });
     }
 
     if (category) {
-      orConditions.push({ category: new RegExp(category, "i") });
+      orConditions.push({ category: new RegExp(`.*${category}*.`, "i") });
+      // orConditions.push({ category: new RegExp(category, "i") });
     }
 
     if (subCategory) {
-      orConditions.push({ subCategories: new RegExp(subCategory, "i") });
+      orConditions.push({
+        subCategories: new RegExp(`.*${subCategory}.*`, "i"),
+      });
+      // orConditions.push({ subCategories: new RegExp(subCategory, "i") });
     }
 
     if (type) {
-      orConditions.push({ type: new RegExp(type, "i") });
+      orConditions.push({ type: new RegExp(`.*${type}.*`, "i") });
+      // orConditions.push({ type: new RegExp(type, "i") });
     }
 
     if (orConditions.length > 0) {
@@ -265,7 +272,6 @@ export const searchProduct = async (req, res, next) => {
       },
     });
   } catch (error) {
-    console.log(error);
     next(error);
   }
 };

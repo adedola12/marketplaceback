@@ -4,27 +4,23 @@ import appConstants from "../constants/index.js";
 import User from "../models/user.model.js";
 
 export const verifyToken = async (req, res, next) => {
-  // const authHeader = req.headers["authorization"];
-  // const tokenFromHeader = authHeader && authHeader.split(" ")[1];
-
   const access_token = req.cookies["access_token"];
 
   if (!access_token) {
-    return next(errorHandler(401, "Unauthorized Request"));
+    return next(errorHandler(401, "Unauthorized token is required"));
   }
 
   try {
-
     const decoded = jwt.verify(access_token, appConstants.JWT_SECRET);
-   
+
     if (!decoded) {
-      return next(errorHandler(401, "Unauthorized token"));
+      return next(errorHandler(401, "Unauthorized invalid token"));
     }
 
     const user = await User.findById(decoded?.id);
 
     if (!user && !user._id) {
-      return next(errorHandler(401, "Unauthorized user"));
+      return next(errorHandler(401, "Unauthorized invalid user"));
     }
 
     const { password, ...rest } = user._doc;
@@ -32,7 +28,6 @@ export const verifyToken = async (req, res, next) => {
     req.user = rest;
 
     next();
-    
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       return next(errorHandler(401, "jwt expired"));
@@ -44,7 +39,7 @@ export const verifyToken = async (req, res, next) => {
 };
 
 export const verifyRefreshToken = async (req, res, next) => {
-  const { refresh_token } = req.cookies;
+  const refresh_token = req.cookies["refresh_token"];
 
   if (!refresh_token) {
     return next(errorHandler(401, "Unauthorized Request"));
@@ -103,19 +98,19 @@ export const refreshToken = async (req, res, next) => {
       return next(errorHandler(401, "Unauthorized user"));
     }
 
-    const access_token = jwt.sign({ id: user._id }, appConstants.JWT_SECRET, {
-      expiresIn: "15m",
+    const access_token = jwt.sign({ id: user.id }, appConstants.JWT_SECRET, {
+      expiresIn: appConstants.JWT_ACCESS_TOKEN_TIMEOUT,
     });
     const new_refresh_token = jwt.sign(
-      { id: user._id },
+      { id: user.id },
       appConstants.JWT_REFRESH_TOKEN_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: appConstants.JWT_REFRESH_TOKEN_TIMEOUT }
     );
 
     res.cookie("refresh_token", new_refresh_token, {
       httpOnly: true,
       path: "/",
-      secure: false,
+      secure: true,
       sameSite: "none",
       expires: new Date(
         Date.now() + appConstants.REFRESH_TOKEN_COOKIES_TIMEOUT
@@ -123,10 +118,10 @@ export const refreshToken = async (req, res, next) => {
     });
 
     res.cookie("access_token", access_token, {
+      httpOnly: true,
       path: "/",
-      httpOnly: false,
-      secure: false,
-      sameSite: "lax",
+      secure: true,
+      sameSite: "none",
       expires: new Date(Date.now() + appConstants.ACCESS_TOKEN_COOKIES_TIMEOUT),
     });
 
