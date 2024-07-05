@@ -11,8 +11,9 @@ import {
   getCategories,
   getProduct,
   searchProduct,
-
-  updateProduct
+  sellerProduct,
+  updateProduct,
+  marketSearch
 
 } from "../controllers/product.controller.js";
 
@@ -28,6 +29,8 @@ router.get("/getCat", getCat);
 router.get("/getProduct/category/:category", getAllProductInCategory);
 router.get("/get/:id", getProduct);
 router.get("/search", searchProduct);
+router.get("/market-search", marketSearch);
+router.get("/seller-products/:sellerId", sellerProduct);
 
 router.get("/:categoryName/subcategories", getAllProductInSubCategory);
 

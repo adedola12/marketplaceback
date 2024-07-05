@@ -5,16 +5,18 @@ import errorHandler from "../utils/error.js";
 import jwt from "jsonwebtoken";
 
 export const signup = async (req, res, next) => {
+  
   const { username, email, password } = req.body;
 
-  const newUser = new User({ username, email, password });
-
   try {
-    const userExist = await User.find({ email });
+
+    const userExist = await User.findOne({ email });
 
     if (userExist) {
       return res.status(400).json({ message: "User already exist" });
     }
+
+    const newUser = new User({ username, email, password });
 
     const savedUser = await newUser.save();
 
@@ -48,7 +50,7 @@ export const signin = async (req, res, next) => {
     const validPassword = await validUser.comparePassword(password);
 
     if (!validPassword) {
-      return next(errorHandler(404, "Wrong password!!"));
+      return next(errorHandler(400, "Wrong password!!"));
     }
 
     const access_token = jwt.sign(
