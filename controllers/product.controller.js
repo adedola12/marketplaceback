@@ -284,25 +284,54 @@ export const sellerProduct = async (req, res, next) => {
 
 export const searchProduct = async (req, res, next) => {
 
-  const { query = "", limit = 12, startIndex = 0, } = req.query;
+  const { 
+    name = "", 
+    location = "",
+    category = "",
+    subCategory = "",
+    type = "",
+    limit = 12, 
+    startIndex = 0, } = req.query;
   
-  const queryRegx = new RegExp(query, 'i');
+  // const queryRegx = new RegExp(query, 'i');
 
   try {
 
     const distinctCategories = await Product.distinct("category");
 
-    const queryFilters = {
-      $or: [
-        { name: { $regex: queryRegx } },
-        { location: { $regex: queryRegx } },
-        { category: { $regex: queryRegx } },
-        { subCategories: { $regex: queryRegx } },
-        { type: { $regex: queryRegx } },
-      ],
+    // const queryFilters = {
+    //   $or: [
+    //     { name: { $regex: queryRegx } },
+    //     { location: { $regex: queryRegx } },
+    //     { category: { $regex: queryRegx } },
+    //     { subCategories: { $regex: queryRegx } },
+    //     { type: { $regex: queryRegx } },
+    //   ],
+    // }
+
+    let filter = {};
+  
+    if(name) {
+      filter.name = { $regex: `.*${name}.*`, $options: 'i' }
+    }
+  
+    if(location) {
+      filter.location =  { $regex: `.*${location}.*`, $options: 'i' }
     }
 
-    const products = await Product.find(queryFilters)
+    if(category) {
+      filter.category =  { $regex: `.*${category}.*`, $options: 'i' }
+    }
+
+    if(subCategory) {
+      filter.subCategories =  { $regex: `.*${subCategory}.*`, $options: 'i' }
+    }
+  
+    if(type) {
+      filter.category =  { $regex: `.*${type}.*`, $options: 'i' }
+    }
+
+    const products = await Product.find(filter)
     .limit(limit)
     .skip(startIndex)
 
@@ -320,23 +349,33 @@ export const searchProduct = async (req, res, next) => {
 
 export const marketSearch = async (req, res, next) => {
 
-  const { query = "", limit = 12, startIndex = 0, } = req.query;
-  
-  const queryRegx = new RegExp(query, 'i');
+  const { 
+    name = "", 
+    location = "",
+    category = "",
+    limit = 12, 
+    startIndex = 0, } = req.query;
 
   try {
 
     const distinctCategories = await Product.distinct("category");
 
-    const queryFilters = {
-      $or: [
-        { name: { $regex: queryRegx } },
-        { location: { $regex: queryRegx } },
-        { category: { $regex: queryRegx } },
-      ],
+
+    let filter = {};
+  
+    if(name) {
+      filter.name = { $regex: `.*${name}.*`, $options: 'i' }
+    }
+  
+    if(location) {
+      filter.location =  { $regex: `.*${location}.*`, $options: 'i' }
+    }
+  
+    if(category) {
+      filter.category =  { $regex: `.*${category}.*`, $options: 'i' }
     }
 
-    const products = await Product.find(queryFilters)
+    const products = await Product.find(filter)
     .limit(limit)
     .skip(startIndex)
 
@@ -405,6 +444,7 @@ export const editProduct = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // export const updateProduct = async (req, res, next) => {
 
