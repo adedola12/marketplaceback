@@ -18,12 +18,13 @@ export const createProduct = async (req, res, next) => {
     mobile,
     unit,
     categoryName,
-    subCategories: { subCategories },
+    subCategories,
     userRef,
   } = req.body;
 
   try {
-    const subCat = subCategories.map((name) => name);
+
+    const subCat = subCategories?.subCategories.map((name) => name);
 
     const newProduct = new Product({
       name,
@@ -32,7 +33,7 @@ export const createProduct = async (req, res, next) => {
       storeAddress,
       type,
       regularPrice,
-      discountPrice,
+      discountPrice: regularPrice,
       discount,
       imageUrls,
       mobile,
@@ -43,8 +44,14 @@ export const createProduct = async (req, res, next) => {
     });
 
     const product = await newProduct.save();
+
+    if(!product) {
+      return res.status(400).json({message: "Unable to create product"})
+    }
+
     return res.status(201).json(product);
   } catch (error) {
+    console.log(error)
     next(error);
   }
 };
